@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TNB Bill Calculator</title>
+
+<style>
+:root{
+    --petronas:#00B1A9;
+    --bg:#f2f2f7;
+    --card:rgba(255,255,255,0.78);
+    --text:#111827;
+    --secondary:#6b7280;
+    --border:rgba(255,255,255,0.55);
+}
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+    color:var(--text);
+    padding:18px;
+}
+
+.container{
+    max-width:430px;
+    margin:auto;
+}
+
+.card{
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:30px;
+    padding:24px;
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+.header{
+    margin-bottom:24px;
+}
+
+h1{
+    margin:0;
+    font-size:30px;
+    font-weight:700;
+}
+
+.subtitle{
+    margin-top:6px;
+    color:var(--secondary);
+    font-size:15px;
+}
+
+.field{
+    margin-bottom:18px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-size:14px;
+    font-weight:600;
+}
+
+input, select{
+    width:100%;
+    border:none;
+    background:#ffffff;
+    border-radius:18px;
+    padding:16px;
+    font-size:18px;
+    outline:none;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+input:focus,
+select:focus{
+    box-shadow:
+        inset 0 0 0 2px var(--petronas),
+        0 0 0 4px rgba(0,177,169,0.12);
+}
+
+button{
+    width:100%;
+    border:none;
+    border-radius:20px;
+    padding:18px;
+    background:var(--petronas);
+    color:white;
+    font-size:18px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:8px;
+    transition:0.15s ease;
+}
+
+button:active{
+    transform:scale(0.985);
+}
+
+.result{
+    margin-top:26px;
+    border-radius:26px;
+    background:linear-gradient(135deg,#00B1A9,#31d1c8);
+    color:white;
+    padding:28px;
+    text-align:center;
+    box-shadow:0 12px 24px rgba(0,177,169,0.25);
+}
+
+.result-title{
+    font-size:15px;
+    opacity:0.95;
+}
+
+.result-value{
+    margin-top:8px;
+    font-size:46px;
+    font-weight:800;
+    letter-spacing:-1px;
+}
+
+.result-sub{
+    margin-top:8px;
+    font-size:13px;
+    opacity:0.9;
+}
+
+.details-toggle{
+    margin-top:18px;
+    text-align:center;
+    font-size:16px;
+    font-weight:600;
+    color:var(--petronas);
+    cursor:pointer;
+    user-select:none;
+}
+
+.details{
+    display:none;
+    margin-top:18px;
+    background:#ffffff;
+    border-radius:22px;
+    padding:18px;
+}
+
+.detail-row{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid rgba(0,0,0,0.06);
+    font-size:15px;
+}
+
+.detail-row:last-child{
+    border-bottom:none;
+}
+
+.footer{
+    margin-top:18px;
+    text-align:center;
+    color:var(--secondary);
+    font-size:12px;
+}
+
+.show{
+    display:block;
+}
+
+@media (max-width:390px){
+    .result-value{
+        font-size:40px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="header">
+            <h1>TNB Bill</h1>
+            <div class="subtitle">1 July 2025 Tariff Calculator</div>
+        </div>
+
+        <div class="field">
+            <label>Penggunaan (kWh)</label>
+            <input type="number" id="usage" value="996">
+        </div>
+
+        <div class="field">
+            <label>Penjanaan Solar (kWh)</label>
+            <input type="number" id="generation" value="0">
+        </div>
+
+        <div class="field">
+            <label>AFA (sen/kWh)</label>
+            <input type="number" id="afa" step="0.01" value="-0.47">
+        </div>
+
+        <div class="field">
+            <label>Tempoh Bil</label>
+            <select id="period">
+                <option value="ge28">≥ 28 Hari</option>
+                <option value="lt28">< 28 Hari</option>
+            </select>
+        </div>
+
+        <button onclick="calculateBill()">Calculate Bill</button>
+
+        <div class="result">
+            <div class="result-title">Jumlah Bil TNB</div>
+            <div class="result-value">RM <span id="bill">0.00</span></div>
+            <div class="result-sub">Optimized for iPhone Safari</div>
+        </div>
+
+        <div class="details-toggle" onclick="toggleDetails()">
+            Show Details
+        </div>
+
+        <div class="details" id="detailsBox">
+
+            <div class="detail-row">
+                <span>Tenaga</span>
+                <span id="dTenaga">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>AFA</span>
+                <span id="dAfa">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>Kapasiti</span>
+                <span id="dKapasiti">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>Rangkaian</span>
+                <span id="dRangkaian">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>Retail</span>
+                <span id="dRetail">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>Incentive</span>
+                <span id="dIncentive">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>Service Tax</span>
+                <span id="dST">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>KWTBB</span>
+                <span id="dKWTBB">0.00</span>
+            </div>
+
+            <div class="detail-row">
+                <span>NEM Credit</span>
+                <span id="dNEM">0.00</span>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Offline capable • Native iOS inspired UI
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function round2(num){
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+}
+
+function toggleDetails(){
+
+    const box = document.getElementById("detailsBox");
+    const toggle = document.querySelector(".details-toggle");
+
+    if(box.classList.contains("show")){
+        box.classList.remove("show");
+        toggle.innerText = "Show Details";
+    } else {
+        box.classList.add("show");
+        toggle.innerText = "Hide Details";
+    }
+}
+
+function getIncentiveRate(kwh){
+
+    if(kwh <= 200) return -25;
+    if(kwh <= 250) return -24.5;
+    if(kwh <= 300) return -22.5;
+    if(kwh <= 350) return -21;
+    if(kwh <= 400) return -17;
+    if(kwh <= 450) return -14.5;
+    if(kwh <= 500) return -12;
+    if(kwh <= 550) return -10.5;
+    if(kwh <= 600) return -9;
+    if(kwh <= 650) return -7;
+    if(kwh <= 700) return -5;
+    if(kwh <= 750) return -3;
+    if(kwh <= 800) return -1.5;
+    if(kwh <= 850) return -1;
+    if(kwh <= 900) return -0.5;
+    if(kwh <= 1000) return -0.1;
+
+    return 0;
+}
+
+function calculateBill(){
+
+    const usage = parseFloat(document.getElementById("usage").value) || 0;
+    const generation = parseFloat(document.getElementById("generation").value) || 0;
+    const afa = parseFloat(document.getElementById("afa").value) || 0;
+    const period = document.getElementById("period").value;
+
+    const withoutST = period === "lt28" ? 0 : Math.min(usage,600);
+    const withST = period === "lt28" ? usage : Math.max(usage - 600,0);
+
+    const incentiveRate = getIncentiveRate(usage);
+    const excessGeneration = Math.min(generation,usage);
+
+    const tenaga =
+        round2(0.2703 * withoutST) +
+        round2(0.2703 * withST);
+
+    const afaCharge =
+        usage > 600 ?
+        round2((afa/100) * withoutST) +
+        round2((afa/100) * withST)
+        : 0;
+
+    const kapasiti =
+        round2(0.0455 * withoutST) +
+        round2(0.0455 * withST);
+
+    const rangkaian =
+        round2(0.1285 * withoutST) +
+        round2(0.1285 * withST);
+
+    const retail = usage > 600 ? 10 : 0;
+
+    const incentive =
+        round2((incentiveRate/100) * withoutST) +
+        round2((incentiveRate/100) * withST);
+
+    const usageCharge =
+        tenaga +
+        afaCharge +
+        kapasiti +
+        rangkaian +
+        retail +
+        incentive;
+
+    const serviceTax =
+        round2(
+            (
+                round2(0.2703 * withST) +
+                (usage > 600 ? round2((afa/100) * withST) : 0) +
+                round2(0.0455 * withST) +
+                round2(0.1285 * withST) +
+                retail +
+                round2((incentiveRate/100) * withST)
+            ) * 0.08
+        );
+
+    const kwtbb =
+        usage > 300 ?
+        (tenaga + kapasiti + rangkaian + incentive) * 0.016
+        : 0;
+
+    const nemCredit =
+        (-0.2703 * excessGeneration) +
+        (-0.0455 * excessGeneration) +
+        (-0.1285 * excessGeneration);
+
+    const incentiveAdjustment =
+        ((incentiveRate/100) * -1) * excessGeneration;
+
+    let total =
+        usageCharge +
+        serviceTax +
+        kwtbb +
+        nemCredit +
+        incentiveAdjustment;
+
+    if(total < 0){
+        total = 0;
+    }
+
+    document.getElementById("bill").innerText = total.toFixed(2);
+
+    document.getElementById("dTenaga").innerText = tenaga.toFixed(2);
+    document.getElementById("dAfa").innerText = afaCharge.toFixed(2);
+    document.getElementById("dKapasiti").innerText = kapasiti.toFixed(2);
+    document.getElementById("dRangkaian").innerText = rangkaian.toFixed(2);
+    document.getElementById("dRetail").innerText = retail.toFixed(2);
+    document.getElementById("dIncentive").innerText = incentive.toFixed(2);
+    document.getElementById("dST").innerText = serviceTax.toFixed(2);
+    document.getElementById("dKWTBB").innerText = kwtbb.toFixed(2);
+    document.getElementById("dNEM").innerText = nemCredit.toFixed(2);
+
+}
+
+calculateBill();
+
+</script>
+
+</body>
+</html>
