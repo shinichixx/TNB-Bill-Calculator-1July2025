@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TNB Bill Calculator (NEM 3.0)</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f3f5f7;
+    color: #1f2937;
+}
+
+.card {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 4px;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 22px;
+}
+
+.field {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #fff;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #00b1a9;
+    box-shadow: 0 0 0 3px rgba(0,177,169,0.15);
+}
+
+.unit {
+    min-width: 70px;
+    font-size: 0.9rem;
+    color: #6b7280;
+    text-align: right;
+}
+
+.result {
+    margin-top: 24px;
+    padding: 18px;
+    border-radius: 14px;
+    background: #00b1a9;
+    color: white;
+    text-align: center;
+}
+
+.result-title {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 6px;
+}
+
+.result-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.details-btn {
+    margin-top: 18px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: #e5e7eb;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.details-container {
+    display: none;
+    margin-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 14px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    font-size: 0.9rem;
+}
+
+.detail-row span:last-child {
+    font-weight: 600;
+}
+
+.footer {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+@media (max-width: 430px) {
+    body {
+        padding: 14px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .result-value {
+        font-size: 1.8rem;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>TNB Bill Calculator (NEM 3.0)</h1>
+    <div class="subtitle">Tariff 1 July 2025</div>
+
+    <div class="field">
+        <label for="usage">Jumlah penggunaan</label>
+        <div class="input-group">
+            <input type="number" id="usage" inputmode="decimal" value="" step="0.01">
+            <div class="unit">kWh</div>
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="generation">Jumlah penjanaan</label>
+        <div class="input-group">
+            <input type="number" id="generation" inputmode="decimal" value="" step="0.01">
+            <div class="unit">kWh</div>
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="afa">AFA</label>
+        <div class="input-group">
+            <input type="text" id="afa" value="">
+            <div class="unit">sen/kWh</div>
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="period">Tempoh bil</label>
+        <select id="period">
+            <option value="ge28">≥28 hari</option>
+            <option value="lt28">&lt;28 hari</option>
+        </select>
+    </div>
+
+    <div class="result">
+        <div class="result-title">Caj semasa (RM)</div>
+        <div class="result-value" id="bill">0.00</div>
+    </div>
+
+    <button class="details-btn" onclick="toggleDetails()">Show details</button>
+
+    <div class="details-container" id="details">
+
+        <div class="detail-row">
+            <span>Tenaga</span>
+            <span id="d-tenaga">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>AFA</span>
+            <span id="d-afa">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>Kapasiti</span>
+            <span id="d-kapasiti">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>Rangkaian</span>
+            <span id="d-rangkaian">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>Retail</span>
+            <span id="d-retail">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>Incentive</span>
+            <span id="d-incentive">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>Service Tax</span>
+            <span id="d-st">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>KWTBB</span>
+            <span id="d-kwtbb">0.00</span>
+        </div>
+
+        <div class="detail-row">
+            <span>NEM Credit</span>
+            <span id="d-nem">0.00</span>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Prepared by Ridhuan
+    </div>
+
+</div>
+
+<script>
+
+function round2(num) {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+}
+
+function getIncentiveRate(kwh) {
+    if (kwh <= 200) return -25;
+    if (kwh <= 250) return -24.5;
+    if (kwh <= 300) return -22.5;
+    if (kwh <= 350) return -21;
+    if (kwh <= 400) return -17;
+    if (kwh <= 450) return -14.5;
+    if (kwh <= 500) return -12;
+    if (kwh <= 550) return -10.5;
+    if (kwh <= 600) return -9;
+    if (kwh <= 650) return -7.5;
+    if (kwh <= 700) return -5.5;
+    if (kwh <= 750) return -4.5;
+    if (kwh <= 800) return -4;
+    if (kwh <= 850) return -2.5;
+    if (kwh <= 900) return -1;
+    if (kwh <= 1000) return -0.5;
+    return 0;
+}
+
+function calculateBill() {
+
+    const usage = parseFloat(document.getElementById('usage').value) || 0;
+    const generation = parseFloat(document.getElementById('generation').value) || 0;
+    const afa = parseFloat(document.getElementById('afa').value) || 0;
+    const period = document.getElementById('period').value;
+
+    const withoutST = period === 'lt28' ? 0 : Math.min(usage, 600);
+    const withST = period === 'lt28' ? usage : Math.max(usage - 600, 0);
+
+    const nemCreditKwh = Math.min(generation, usage);
+
+    const tenaga = round2(0.2703 * usage);
+
+    const afaCharge = usage > 600
+        ? round2((afa / 100) * withoutST) + round2((afa / 100) * withST)
+        : 0;
+
+    const kapasiti = round2(0.0455 * usage);
+
+    const rangkaian = round2(0.1285 * usage);
+
+    const retail = usage > 600 ? 10 : 0;
+
+    const incentiveRate = getIncentiveRate(usage);
+
+    const incentive = round2((incentiveRate / 100) * usage);
+
+    const currentUsageCharge =
+        tenaga +
+        afaCharge +
+        kapasiti +
+        rangkaian +
+        retail +
+        incentive;
+
+    const serviceTax = round2((
+        0.2703 * withST +
+        round2((afa / 100) * withST) +
+        round2(0.0455 * withST) +
+        round2(0.1285 * withST) +
+        retail +
+        round2((incentiveRate / 100) * withST)
+    ) * 0.08);
+
+    const kwtbb = usage > 300
+        ? round2((tenaga + kapasiti + rangkaian + incentive) * 0.016)
+        : 0;
+
+    const nemCredits = round2(
+        (-0.2703 * nemCreditKwh) +
+        (-0.0455 * nemCreditKwh) +
+        (-0.1285 * nemCreditKwh) +
+        ((incentiveRate / 100) * -1 * nemCreditKwh)
+    );
+
+    let total = currentUsageCharge + serviceTax + kwtbb + nemCredits;
+
+    total = total < 0 ? 0 : total;
+
+    document.getElementById('bill').innerText = total.toFixed(2);
+
+    document.getElementById('d-tenaga').innerText = tenaga.toFixed(2);
+    document.getElementById('d-afa').innerText = afaCharge.toFixed(2);
+    document.getElementById('d-kapasiti').innerText = kapasiti.toFixed(2);
+    document.getElementById('d-rangkaian').innerText = rangkaian.toFixed(2);
+    document.getElementById('d-retail').innerText = retail.toFixed(2);
+    document.getElementById('d-incentive').innerText = incentive.toFixed(2);
+    document.getElementById('d-st').innerText = serviceTax.toFixed(2);
+    document.getElementById('d-kwtbb').innerText = kwtbb.toFixed(2);
+    document.getElementById('d-nem').innerText = nemCredits.toFixed(2);
+}
+
+function toggleDetails() {
+
+    const details = document.getElementById('details');
+    const button = document.querySelector('.details-btn');
+
+    if (details.style.display === 'block') {
+        details.style.display = 'none';
+        button.innerText = 'Show details';
+    } else {
+        details.style.display = 'block';
+        button.innerText = 'Hide details';
+    }
+}
+
+document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', calculateBill);
+});
+
+calculateBill();
+
+</script>
+
+</body>
+</html>
